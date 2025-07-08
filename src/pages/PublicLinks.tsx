@@ -39,6 +39,14 @@ const PublicLinks = () => {
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Discover amazing products and services through our curated collection of affiliate links
             </p>
+            <div className="flex justify-center">
+              <a 
+                href="/admin" 
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Admin Access
+              </a>
+            </div>
           </div>
         </div>
       </header>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +13,8 @@ import { AffiliateLink } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminPanel = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, login, logout } = useAuth();
   const { links, categories, addLink, updateLink, deleteLink, addCategory, deleteCategory } = useLinks();
   const [editingLink, setEditingLink] = useState<AffiliateLink | undefined>();
@@ -75,7 +78,13 @@ const AdminPanel = () => {
               <h1 className="text-2xl font-bold">Admin Panel</h1>
               <p className="text-muted-foreground">Manage your affiliate links and categories</p>
             </div>
-            <Button onClick={logout} variant="outline">
+            <Button 
+              onClick={() => {
+                logout();
+                navigate('/');
+              }} 
+              variant="outline"
+            >
               Logout
             </Button>
           </div>
