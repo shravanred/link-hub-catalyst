@@ -79,6 +79,16 @@ const LinkForm = ({ link, categories, onSubmit, onCancel }: LinkFormProps) => {
     e.preventDefault();
     setIsLoading(true);
 
+    if (!formData.category) {
+      toast({
+        title: 'Category required',
+        description: 'Please select a category before submitting.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       onSubmit(formData);
       toast({

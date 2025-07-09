@@ -18,14 +18,14 @@ const CategoryPage = () => {
       {/* Header */}
       <header className="bg-card border-b">
         <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between">
             <Link to="/">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Categories
               </Button>
             </Link>
-            <div>
+            <div className="text-right">
               <h1 className="text-3xl font-bold capitalize">{name}</h1>
               <p className="text-muted-foreground">
                 {categoryLinks.length} product{categoryLinks.length !== 1 ? 's' : ''} available
