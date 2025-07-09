@@ -26,56 +26,32 @@ const LinkForm = ({ link, categories, onSubmit, onCancel }: LinkFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Auto-extract data from Flipkart URLs
-  const extractFromFlipkartUrl = (url: string) => {
-    if (!url.includes('flipkart.com')) return;
-
+  // Auto-extract data from any affiliate URL
+  const extractFromAffiliateUrl = (url: string) => {
     try {
       const urlObj = new URL(url);
-      const pathParts = urlObj.pathname.split('/').filter(Boolean);
+      const pathname = urlObj.pathname;
       
-      if (pathParts.length >= 2) {
-        const productSlug = pathParts[1];
-        const slugParts = productSlug.split('-');
+      // Find product slug between domain and /p or /buy
+      const match = pathname.match(/\/([^\/]+)(?:\/p|\/buy|$)/);
+      
+      if (match && match[1]) {
+        const productSlug = match[1];
         
-        // Check if it's a brand product (brand name at start)
-        const knownBrands = ['allen-solly', 'peter-england', 'van-heusen', 'nike', 'adidas', 'puma', 'reebok', 'woodland', 'roadster', 'hrx', 'us-polo', 'flying-machine', 'wrangler', 'levis', 'pepe-jeans', 'only', 'vero-moda', 'jack-jones', 'being-human', 'calvin-klein', 'tommy-hilfiger', 'fossil', 'casio', 'titan', 'fastrack', 'boat', 'jbl', 'sony', 'samsung', 'apple', 'oneplus', 'mi', 'realme', 'oppo', 'vivo', 'noise', 'amazfit', 'fitbit'];
+        // Convert hyphens to spaces for description
+        const description = productSlug.replace(/-/g, ' ');
         
-        const firstTwoParts = `${slugParts[0]}-${slugParts[1] || ''}`;
-        const isBrandProduct = knownBrands.some(brand => 
-          productSlug.startsWith(brand) || productSlug.startsWith(firstTwoParts)
-        );
-
-        if (isBrandProduct && slugParts.length > 2) {
-          // Brand product: extract brand as title, rest as description
-          const brandEndIndex = slugParts.findIndex((part, index) => {
-            const brandCheck = slugParts.slice(0, index + 1).join('-');
-            return knownBrands.includes(brandCheck);
-          });
+        setFormData(prev => ({
+          ...prev,
+          description: description.charAt(0).toUpperCase() + description.slice(1)
+        }));
+      } else {
+        // Fallback: try to extract from path parts
+        const pathParts = pathname.split('/').filter(Boolean);
+        if (pathParts.length > 0) {
+          const lastPart = pathParts[pathParts.length - 1];
+          const description = lastPart.replace(/-/g, ' ');
           
-          if (brandEndIndex >= 0) {
-            const title = slugParts.slice(0, brandEndIndex + 1).join(' ');
-            const description = slugParts.slice(brandEndIndex + 1).join(' ');
-            
-            setFormData(prev => ({
-              ...prev,
-              title: title.charAt(0).toUpperCase() + title.slice(1),
-              description: description.charAt(0).toUpperCase() + description.slice(1)
-            }));
-          } else {
-            // Fallback for brand products
-            const title = `${slugParts[0]} ${slugParts[1] || ''}`.trim();
-            const description = slugParts.slice(2).join(' ');
-            
-            setFormData(prev => ({
-              ...prev,
-              title: title.charAt(0).toUpperCase() + title.slice(1),
-              description: description.charAt(0).toUpperCase() + description.slice(1)
-            }));
-          }
-        } else {
-          // Regular product: use entire slug as description
-          const description = productSlug.replace(/-/g, ' ');
           setFormData(prev => ({
             ...prev,
             description: description.charAt(0).toUpperCase() + description.slice(1)
@@ -83,7 +59,7 @@ const LinkForm = ({ link, categories, onSubmit, onCancel }: LinkFormProps) => {
         }
       }
     } catch (error) {
-      console.error('Error parsing Flipkart URL:', error);
+      console.error('Error parsing affiliate URL:', error);
     }
   };
 
@@ -122,8 +98,8 @@ const LinkForm = ({ link, categories, onSubmit, onCancel }: LinkFormProps) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
     // Auto-extract when URL is pasted
-    if (field === 'url' && value.includes('flipkart.com')) {
-      extractFromFlipkartUrl(value);
+    if (field === 'url' && value.trim()) {
+      extractFromAffiliateUrl(value);
     }
   };
 

@@ -21,7 +21,10 @@ const LinkCard = ({ link, isAdmin = false, onEdit, onDelete }: LinkCardProps) =>
         <div className="space-y-3">
           {/* Image */}
           {link.imageUrl && (
-            <div className="w-full h-32 rounded-lg overflow-hidden bg-muted">
+            <div 
+              className="w-full h-32 rounded-lg overflow-hidden bg-muted cursor-pointer"
+              onClick={handleVisit}
+            >
               <img
                 src={link.imageUrl}
                 alt={link.title}
@@ -38,9 +41,11 @@ const LinkCard = ({ link, isAdmin = false, onEdit, onDelete }: LinkCardProps) =>
           <div className="space-y-2">
             <div className="flex items-start justify-between gap-2">
               <h3 className="font-semibold text-sm line-clamp-2">{link.title}</h3>
-              <Badge variant="secondary" className="text-xs shrink-0">
-                {link.category}
-              </Badge>
+              {isAdmin && (
+                <Badge variant="secondary" className="text-xs shrink-0">
+                  {link.category}
+                </Badge>
+              )}
             </div>
 
             {link.description && (
