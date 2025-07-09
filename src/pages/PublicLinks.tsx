@@ -1,33 +1,34 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ChevronRight } from "lucide-react";
 import { useLinks } from '@/hooks/useLinks';
-import LinkCard from '@/components/LinkCard';
 
 const PublicLinks = () => {
   const { links, categories } = useLinks();
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter links based on category and search
-  const filteredLinks = links.filter(link => {
-    const matchesCategory = selectedCategory === 'all' || link.category === selectedCategory;
-    const matchesSearch = searchQuery === '' || 
-      link.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      link.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+  // Filter categories based on search
+  const filteredCategories = categories.filter(category => {
+    const hasMatchingLinks = links.some(link => 
+      link.category === category.name && (
+        searchQuery === '' || 
+        link.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        link.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        category.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    );
+    return hasMatchingLinks;
   });
 
-  // Group filtered links by category
-  const linksByCategory = categories.reduce((acc, category) => {
-    const categoryLinks = filteredLinks.filter(link => link.category === category.name);
-    if (categoryLinks.length > 0 || selectedCategory === category.name) {
-      acc[category.name] = categoryLinks;
-    }
+  // Count links per category
+  const linkCounts = categories.reduce((acc, category) => {
+    acc[category.name] = links.filter(link => link.category === category.name).length;
     return acc;
-  }, {} as Record<string, typeof links>);
+  }, {} as Record<string, number>);
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,109 +52,59 @@ const PublicLinks = () => {
         </div>
       </header>
 
-      {/* Filters */}
+      {/* Search */}
       <section className="bg-muted/30 py-6">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            {/* Search */}
-            <div className="w-full md:w-auto md:min-w-[300px]">
-              <Input
-                placeholder="Search links..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full"
-              />
-            </div>
-
-            {/* Category Filters */}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory('all')}
-                size="sm"
-              >
-                All Categories
-              </Button>
-              {categories.map((category) => {
-                const count = links.filter(link => link.category === category.name).length;
-                return (
-                  <Button
-                    key={category.id}
-                    variant={selectedCategory === category.name ? 'default' : 'outline'}
-                    onClick={() => setSelectedCategory(category.name)}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    {category.name}
-                    <Badge variant="secondary" className="text-xs">
-                      {count}
-                    </Badge>
-                  </Button>
-                );
-              })}
-            </div>
+          <div className="max-w-md mx-auto">
+            <Input
+              placeholder="Search categories and products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+            />
           </div>
         </div>
       </section>
 
-      {/* Main Content */}
+      {/* Categories List */}
       <main className="container mx-auto px-6 py-8">
-        {filteredLinks.length === 0 ? (
+        {filteredCategories.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
-              <h3 className="text-lg font-semibold mb-2">No links found</h3>
+              <h3 className="text-lg font-semibold mb-2">No categories found</h3>
               <p className="text-muted-foreground">
                 {searchQuery 
-                  ? `No links match your search "${searchQuery}"`
-                  : selectedCategory !== 'all' 
-                    ? `No links found in "${selectedCategory}" category`
-                    : 'No links available yet'
+                  ? `No categories match your search "${searchQuery}"`
+                  : 'No categories available yet'
                 }
               </p>
             </CardContent>
           </Card>
-        ) : selectedCategory === 'all' ? (
-          // Show all categories
-          <div className="space-y-8">
-            {Object.entries(linksByCategory).map(([categoryName, categoryLinks]) => (
-              <Card key={categoryName}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    {categoryName}
-                    <Badge variant="secondary">
-                      {categoryLinks.length} link{categoryLinks.length !== 1 ? 's' : ''}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {categoryLinks.map((link) => (
-                      <LinkCard key={link.id} link={link} />
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCategories.map((category) => (
+              <Link 
+                key={category.id}
+                to={`/category/${encodeURIComponent(category.name.toLowerCase())}`}
+              >
+                <Card className="group hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">
+                          {category.name}
+                        </h3>
+                        <p className="text-muted-foreground mt-1">
+                          {linkCounts[category.name]} product{linkCounts[category.name] !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
-        ) : (
-          // Show single category
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                {selectedCategory}
-                <Badge variant="secondary">
-                  {filteredLinks.length} link{filteredLinks.length !== 1 ? 's' : ''}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredLinks.map((link) => (
-                  <LinkCard key={link.id} link={link} />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         )}
       </main>
 

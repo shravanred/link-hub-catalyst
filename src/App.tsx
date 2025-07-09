@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import PublicLinks from "./pages/PublicLinks";
+import CategoryPage from "./pages/CategoryPage";
 import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<PublicLinks />} />
+          <Route path="/category/:name" element={<CategoryPage />} />
           <Route path="/login" element={<AdminPanel />} />
           <Route 
             path="/admin" 
